@@ -1,5 +1,6 @@
 package edu.usc.chla.vpicu.explorer.newui;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -12,6 +13,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
@@ -30,6 +32,7 @@ public class VocabInputPanel extends JPanel implements ActionListener {
   private final JCheckBox showSql;
   private final JButton getVocab;
   private final JTextArea sqlPreview;
+  private final JPanel sqlPreviewScroll;
 
   public VocabInputPanel() {
     setLayout(new GridBagLayout());
@@ -72,9 +75,13 @@ public class VocabInputPanel extends JPanel implements ActionListener {
         + "  INNER JOIN lu_clinical_events l\n"
         + "  ON o.event_cd = l.event_cd\n"
         + "  GROUP BY l.event_cd, l.event_cd_desc\n"
-        + "  ORDER BY count DESC");
-    sqlPreview.setVisible(false);
-    add(sqlPreview, gbc(0,6,4,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+        + "  ORDER BY count DESC", 4, 20);
+    sqlPreview.setEditable(false);
+    sqlPreviewScroll = new JPanel();
+    sqlPreviewScroll.setLayout(new BorderLayout());
+    sqlPreviewScroll.add(new JScrollPane(sqlPreview), BorderLayout.CENTER);
+    sqlPreviewScroll.setVisible(false);
+    add(sqlPreviewScroll, gbc(0,6,4,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
 
     useLookup.doClick();
   }
@@ -96,7 +103,8 @@ public class VocabInputPanel extends JPanel implements ActionListener {
     }
     else if (src == showSql) {
       // show/hide sql textarea
-      sqlPreview.setVisible(showSql.isSelected());
+      sqlPreviewScroll.setVisible(showSql.isSelected());
+      validate();
     }
   }
 
