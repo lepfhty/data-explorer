@@ -1,0 +1,39 @@
+<maps xmlns="http://vpicu.chla.usc.edu/mapping"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://vpicu.chla.usc.edu/explorer/mapping mapping.xsd">
+  <sources>
+    <dbsource id="cerner" url="jdbc:jtds:sqlserver://hostname:1433/DBNAME;instance=INSTANCE"
+              name="Cerner" description="Cerner KIDS EHR mirror"/>
+    <dbsource id="ismnew" url="jdbc:oracle:thin:@127.0.0.1:1521:ORCL"
+              name="ISM New" description="Phillips CareVue Flowsheets, ISM New"/>
+    <csvsource id="cedars-flowsheet" url="file://cedars/flowsheet.csv" headers="asdf foo var hello world goodbye"
+               name="Cedars-Sinai Flowsheet" description="A flowsheet CSV file provided by Cedars-Sinai Hospital"/>
+  </sources>
+  <dataset name="VPS PRISM3 Dataset" description="variables for the VPS PRISM3 metric">
+    <variable dataset-id="1" name="Systolic Blood Pressure" description="a non-invasive systolic blood pressure in mmHg">
+      <dbsource ref="cerner"
+                schema="dbo"
+                table="clinical_event"
+                idcol="event_cd"
+                idval="688367"
+                valcol="result_val"/>
+      <dbsource ref="ismnew"
+                schema="ism"
+                table="chartevents"
+                idcol="itemid"
+                idval="764"
+                valcol="value1"/>
+      <csvsource ref="cedars-flowsheet"
+                 idcol="id"
+                 idval="123"
+                 valcol="result">
+                 <value-function language="javascript">
+                   valcol.split('/')[0]
+                 </value-function>
+      </csvsource>
+    </variable>
+    <variable dataset-id="2" >
+      <dbsource ref="ismnew" valcol="value1"/>
+    </variable>
+  </dataset>
+</maps>

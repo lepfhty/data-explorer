@@ -15,9 +15,9 @@ http://www.springframework.org/schema/beans/spring-beans.xsd">
     <property name="dataSource">
       <bean class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
         <property name="driverClassName" value="net.sourceforge.jtds.jdbc.Driver"/>
-        <property name="url" value=""/>
-        <property name="username" value=""/>
-        <property name="password" value=""/>
+        <property name="url" value="jdbc:jtds:sqlserver://CHLADB01.la.ad.chla.org:1433/APPDB;instance=MSS09BPM"/>
+        <property name="username" value="vpicu"/>
+        <property name="password" value="vpicu100"/>
       </bean>
     </property>
   </bean>

@@ -1,0 +1,12 @@
+<jaxb:bindings 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+    xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+    jaxb:extensionBindingPrefixes="xjc"
+    version="2.0">
+    <jaxb:bindings schemaLocation="mapping.xsd">
+        <jaxb:bindings node="//xs:complexType[@name='ValueFunctionType']//xs:attribute[@name='language']/xs:simpleType">
+            <jaxb:typesafeEnumClass name="Language" />
+        </jaxb:bindings>
+   </jaxb:bindings>
+</jaxb:bindings>

@@ -1,6 +1,8 @@
 package edu.usc.chla.vpicu.explorer.newui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class VocabTablePanel extends JPanel {
+import edu.usc.chla.vpicu.explorer.BaseProvider;
+
+public class OccurrenceTablePanel extends JPanel implements OccurrenceListener {
 
   private static final long serialVersionUID = 1L;
 
@@ -29,7 +33,7 @@ public class VocabTablePanel extends JPanel {
 
   private final VocabTableModel model;
 
-  public VocabTablePanel() {
+  public OccurrenceTablePanel(BaseProvider provider) {
     setLayout(new BorderLayout());
     setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
@@ -42,13 +46,10 @@ public class VocabTablePanel extends JPanel {
     filterBar.add(matchCase);
 
     add(filterBar, BorderLayout.NORTH);
-    List<Object[]> allRows = new ArrayList<Object[]>();
-    allRows.add(new Object[] { 1, "foo", 123 });
-    allRows.add(new Object[] { 2, "bar", 321 });
-    allRows.add(new Object[] { 3, "hello", 234 });
 
-    model = new VocabTableModel(allRows, COLUMNS);
+    model = new VocabTableModel(new ArrayList<Object[]>(), COLUMNS);
     filterField.getDocument().addDocumentListener(model);
+    matchCase.addActionListener(model);
     table = new JTable(model);
     add(new JScrollPane(table));
   }
@@ -58,7 +59,7 @@ public class VocabTablePanel extends JPanel {
     filterField.setText("");
   }
 
-  private class VocabTableModel extends FilterTableModel implements DocumentListener {
+  private class VocabTableModel extends FilterTableModel implements DocumentListener, ActionListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -89,6 +90,16 @@ public class VocabTablePanel extends JPanel {
     public void changedUpdate(DocumentEvent e) {
       filter();
     }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      filter();
+    }
+  }
+
+  @Override
+  public void occurrenceQueryPerformed(List<Object[]> results) {
+    setData(results);
   }
 
 }

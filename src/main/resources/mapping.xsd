@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+targetNamespace="http://vpicu.chla.usc.edu/explorer/mapping"
+xmlns:map="http://vpicu.chla.usc.edu/explorer/mapping"
+elementFormDefault="qualified">
+
+  <complexType name="GenericNamedType" abstract="true">
+    <attribute name="name" type="token"/>
+    <attribute name="description" type="token"/>
+  </complexType>
+  
+  <complexType name="DeclarationType" abstract="true">
+    <complexContent>
+      <extension base="map:GenericNamedType">
+        <attribute name="id" type="ID" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="ReferenceType" abstract="true">
+    <complexContent>
+      <extension base="map:GenericNamedType">
+        <attribute name="ref" type="IDREF" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="SourceType" abstract="true">
+    <complexContent>
+      <extension base="map:DeclarationType">
+        <attribute name="url" type="anyURI" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="DBSourceType">
+    <complexContent>
+      <extension base="map:SourceType"/>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="CSVSourceType">
+    <complexContent>
+      <extension base="map:SourceType">
+        <attribute name="headers" type="NMTOKENS"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="SourcesType">
+    <choice minOccurs="1" maxOccurs="unbounded">
+      <element name="dbsource" type="map:DBSourceType"/>
+      <element name="csvsource" type="map:CSVSourceType"/>
+    </choice>
+  </complexType>
+  
+  <complexType name="ValueFunctionType">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="language" use="required">
+          <simpleType>
+            <restriction base="NMTOKEN">
+              <enumeration value="javascript"/>
+            </restriction>
+          </simpleType>
+        </attribute>
+      </extension>
+    </simpleContent>
+  </complexType>
+  
+  <complexType name="SourceMappingType" abstract="true">
+    <complexContent>
+      <extension base="map:ReferenceType">
+        <sequence>
+          <element name="value-function" type="map:ValueFunctionType" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+        <attribute name="idcol" type="NMTOKEN"/>
+        <attribute name="idval" type="string"/>
+        <attribute name="valcol" type="NMTOKEN" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="DBSourceMappingType">
+    <complexContent>
+      <extension base="map:SourceMappingType">
+        <attribute name="schema" type="NMTOKEN"/>
+        <attribute name="table" type="NMTOKEN"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="CSVSourceMappingType">
+    <complexContent>
+      <extension base="map:SourceMappingType"/>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="VariableType">
+    <complexContent>
+      <extension base="map:GenericNamedType">
+        <choice minOccurs="1" maxOccurs="unbounded">
+          <element name="dbsource" type="map:DBSourceMappingType"/>
+          <element name="csvsource" type="map:CSVSourceMappingType"/>
+        </choice>
+        <attribute name="dataset-id" type="NMTOKEN" use="required"/>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="DatasetType">
+    <complexContent>
+      <extension base="map:GenericNamedType">
+        <sequence>
+          <element name="variable" type="map:VariableType" minOccurs="1" maxOccurs="unbounded"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <complexType name="MapsType">
+    <sequence>
+      <element name="sources" type="map:SourcesType" minOccurs="1" maxOccurs="1"/>
+      <element name="dataset" type="map:DatasetType" minOccurs="1" maxOccurs="unbounded">
+        <unique name="uniqueVariableInDataset">
+          <selector xpath="map:variable"/>
+          <field xpath="@dataset-id"/>
+        </unique>
+      </element>
+    </sequence>
+  </complexType>
+  
+  <element name="maps" type="map:MapsType"/>
+
+</schema>

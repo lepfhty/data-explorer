@@ -6,16 +6,21 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
-public class VocabPanel extends JPanel {
+import edu.usc.chla.vpicu.explorer.BaseProvider;
+
+public class OccurrencePanel extends JPanel {
 
   private static final long serialVersionUID = 1L;
 
-  private final VocabInputPanel input;
-  private final VocabTablePanel table;
+  private final BaseProvider provider;
+  private final OccurrenceInputPanel input;
+  private final OccurrenceTablePanel table;
 
-  public VocabPanel(VocabInputPanel input, VocabTablePanel table) {
-    this.input = input;
-    this.table = table;
+  public OccurrencePanel(BaseProvider prov) {
+    this.provider = prov;
+    this.input = new OccurrenceInputPanel(provider);
+    this.table = new OccurrenceTablePanel(provider);
+    input.addOccurrenceListener(table);
 
     setLayout(new BorderLayout());
     setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
