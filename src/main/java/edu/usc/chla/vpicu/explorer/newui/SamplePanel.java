@@ -17,11 +17,12 @@ public class SamplePanel extends JPanel implements SampleListener {
   private static final long serialVersionUID = 1L;
   
   private SampleInputPanel input;
+  private ChartPanel chartPanel;
   
   public SamplePanel(BaseProvider provider) {
     input = new SampleInputPanel(provider);
     input.addSampleListener(this);
-        
+    
     setLayout(new BorderLayout());
     setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
         "Sample"));
@@ -36,9 +37,14 @@ public class SamplePanel extends JPanel implements SampleListener {
   @Override
   public void queryPerformed(SampleEvent e) {
     JFreeChart chart = e.getHistogram().getChart(e.getTitle());
-    ChartPanel panel = new ChartPanel(chart);
-    panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-    add(panel, BorderLayout.CENTER);
-    revalidate();
+    if (chartPanel != null) {
+      chartPanel.setChart(chart);
+    }
+    else {
+      chartPanel = new ChartPanel(chart);
+      chartPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+      add(chartPanel, BorderLayout.CENTER);
+    }
+    validate();
   }
 }
