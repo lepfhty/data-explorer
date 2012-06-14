@@ -226,6 +226,7 @@ public abstract class BaseProvider extends JdbcTemplate {
       public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
         String sql = getSampleQuery(occurrenceTable, occurrenceIdCol.name, occurrenceValueCol.name, sample);
         logger.info(sql);
+        logger.info("value: " + occurrenceIdValue);
         PreparedStatement p = con.prepareStatement(sql);
         p.setObject(1, occurrenceIdValue, occurrenceIdCol.type);
         return p;
@@ -237,7 +238,7 @@ public abstract class BaseProvider extends JdbcTemplate {
       public Histogram extractData(ResultSet rs) throws SQLException, DataAccessException {
         Histogram h = new Histogram();
         while (rs.next())
-          h.put(rs.getString(1), rs.getInt(2));
+          h.put(rs.getString(1), rs.getLong(2));
         return h;
       }
 

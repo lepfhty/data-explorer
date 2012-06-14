@@ -18,10 +18,12 @@ public class MainFrame extends JFrame {
   public MainFrame(BaseProvider provider) {
     setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-    JPanel vocab = new OccurrencePanel(provider);
+    OccurrencePanel vocab = new OccurrencePanel(provider);
 
-    JPanel sample = new SamplePanel(new SampleInputPanel());
-
+    SamplePanel sample = new SamplePanel(provider);
+    vocab.getInputPanel().addOccurrenceListener(sample.getInputPanel());
+    vocab.getTablePanel().addOccurrenceListener(sample.getInputPanel());
+    
     JPanel synonyms = new SynonymPanel();
 
     JPanel status = new StatusPanel();

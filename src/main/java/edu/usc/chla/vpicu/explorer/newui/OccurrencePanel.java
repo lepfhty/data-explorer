@@ -30,4 +30,12 @@ public class OccurrencePanel extends JPanel {
     add(this.table, BorderLayout.CENTER);
   }
 
+  public OccurrenceInputPanel getInputPanel() {
+    return input;
+  }
+  
+  public OccurrenceTablePanel getTablePanel() {
+    return table;
+  }
+
 }

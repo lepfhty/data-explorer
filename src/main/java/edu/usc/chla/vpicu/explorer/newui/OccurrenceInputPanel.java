@@ -86,6 +86,7 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     add(showSql, gbc(0,4+params.size(),1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
     getVocab = new JButton("Get Vocabulary");
     add(getVocab, gbc(3,4+params.size(),1,1,0,0, GridBagConstraints.LINE_END,GridBagConstraints.NONE));
+    
     sqlPreview = new JTextArea(4, 10);
     sqlPreview.setLineWrap(true);
     sqlPreview.setWrapStyleWord(true);
@@ -122,6 +123,7 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
         public void actionPerformed(ActionEvent e) {
           JTextField src = (JTextField)e.getSource();
           params.put(key, src.getText());
+          updateSqlPreview();
         }
 
       });
@@ -129,7 +131,6 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
       add(f, gbc(1,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
       row++;
     }
-
   }
 
   private static GridBagConstraints gbc(int x, int y, int gw, int gh, double wx, double wy, int anchor, int fill) {
@@ -155,11 +156,13 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     else if (src == occTable) {
       occId.removeAllItems();
       occLabel.removeAllItems();
-      for (Column col : provider.getColumns((String)occTable.getSelectedItem())) {
+      String newTable = (String) occTable.getSelectedItem();
+      for (Column col : provider.getColumns(newTable)) {
         occId.addItem(col);
         occLabel.addItem(col);
       }
       updateSqlPreview();
+      fireOccurrenceTableChanged(newTable);
     }
     else if (src == lookupTable) {
       lookupId.removeAllItems();
@@ -170,7 +173,11 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
       }
       updateSqlPreview();
     }
-    else if (src == occId || src == occLabel || src == lookupId || src == lookupLabel) {
+    else if (src == occId) {
+      updateSqlPreview();
+      fireOccurrenceIdColumnChanged((Column)occId.getSelectedItem());
+    }
+    else if (src == occLabel || src == lookupId || src == lookupLabel) {
       updateSqlPreview();
     }
     else if (src == getVocab) {
@@ -204,20 +211,30 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
             (String)lookupTable.getSelectedItem(),
             lookupIdCol == null ? "null" : lookupIdCol.name,
             lookupLabelCol == null ? "null" : lookupLabelCol.name,
-            params).replaceAll("\\s+", " ")
+            params)
         : provider.getOccurrenceQuery((String)occTable.getSelectedItem(),
             occIdCol == null ? "null" : occIdCol.name,
             occLabelCol == null ? "null" : occLabelCol.name,
-            params).replaceAll("\\s+", " "));
+            params));
   }
 
   public void addOccurrenceListener(OccurrenceListener l) {
     listeners.add(OccurrenceListener.class, l);
   }
 
-  public void fireOccurrenceQueryPerformed(List<Object[]> results) {
+  private void fireOccurrenceQueryPerformed(List<Object[]> results) {
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
-      l.occurrenceQueryPerformed(results);
+      l.queryPerformed(OccurrenceEvent.createQueryResult(this, results));
+  }
+  
+  private void fireOccurrenceTableChanged(String newTable) {
+    for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
+      l.tableChanged(OccurrenceEvent.createTableChanged(this, newTable));
+  }
+  
+  private void fireOccurrenceIdColumnChanged(Column newId) {
+    for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
+      l.idColumnChanged(OccurrenceEvent.createIdColumnChanged(this, newId));
   }
 
 }

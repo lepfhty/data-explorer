@@ -1,62 +1,118 @@
 package edu.usc.chla.vpicu.explorer.newui;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.EventListenerList;
 
-public class SampleInputPanel extends JPanel implements ActionListener {
+import org.jfree.chart.ChartUtilities;
+
+import edu.usc.chla.vpicu.explorer.BaseProvider;
+import edu.usc.chla.vpicu.explorer.Column;
+import edu.usc.chla.vpicu.explorer.Histogram;
+
+public class SampleInputPanel extends JPanel implements ActionListener, OccurrenceListener {
 
   private static final long serialVersionUID = 1L;
   private JComboBox valueColumn;
-  private JTextField samplePercent;
-  private JTextField sampleRows;
   private JCheckBox showSql;
   private JButton sample;
   private JTextArea sqlPreview;
+  private Map<String, Object> params;
   private JPanel sqlPreviewScroll;
+  
+  private BaseProvider provider;
+  private String occTable;
+  private Column occId;
+  private Object[] occRow;
+  
+  private EventListenerList listeners = new EventListenerList();
 
-  public SampleInputPanel() {
+  public SampleInputPanel(BaseProvider prov) {
+    provider = prov;
     setLayout(new GridBagLayout());
     setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
     
     add(new JLabel("Value Column"), gbc(0,0,1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
-    valueColumn = new JComboBox(new Object[] {"result_val","performed_dt_tm"});
+    valueColumn = new JComboBox();
     add(valueColumn, gbc(1,0,1,1,1.0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
-    add(new JLabel("Sample Percent"), gbc(0,1,1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
-    samplePercent = new JTextField("20", 5);
-    add(samplePercent, gbc(1,1,1,1,0,0, GridBagConstraints.LINE_START,GridBagConstraints.NONE));
-    add(new JLabel("Sample Rows"), gbc(0,2,1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
-    sampleRows = new JTextField("1000", 5);
-    add(sampleRows, gbc(1,2,1,1,0,0, GridBagConstraints.LINE_START,GridBagConstraints.NONE));
+    
+    params = provider.createDefaultSampleParams();
+    createParameterComponents(1);
 
     showSql = new JCheckBox("Show SQL Preview");
     showSql.addActionListener(this);
-    add(showSql, gbc(0,3,1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+    add(showSql, gbc(0,1+params.size(),1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
     sample = new JButton("Sample");
-    add(sample, gbc(1,3,1,1,0,0, GridBagConstraints.LINE_END,GridBagConstraints.NONE));
-    sqlPreview = new JTextArea("SELECT TOP 1000 result_val\n"
-        + "  FROM clinical_event TABLESAMPLE(20 PERCENT)\n"
-        + "  WHERE event_cd = ?", 4, 20);
+    add(sample, gbc(1,1+params.size(),1,1,0,0, GridBagConstraints.LINE_END,GridBagConstraints.NONE));
+    
+    sqlPreview = new JTextArea(4, 10);
+    sqlPreview.setLineWrap(true);
+    sqlPreview.setWrapStyleWord(true);
     sqlPreview.setEditable(false);
+    
     sqlPreviewScroll = new JPanel();
-    sqlPreviewScroll.setLayout(new BorderLayout());
-    sqlPreviewScroll.add(new JScrollPane(sqlPreview), BorderLayout.CENTER);
+    sqlPreviewScroll.setLayout(new GridLayout(1,1));
+    sqlPreviewScroll.add(new JScrollPane(sqlPreview));
     sqlPreviewScroll.setVisible(false);
-    add(sqlPreviewScroll, gbc(0,4,4,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+    add(sqlPreviewScroll, gbc(0,2+params.size(),4,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.BOTH));
+    
+    valueColumn.addActionListener(this);
+    sample.addActionListener(this);
+  }
+  
+  private void createParameterComponents(int row) {
+    for (String label : params.keySet()) {
+      final String key = label;
+      JTextField f = new JTextField(params.get(label).toString(), 5);
+      f.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          JTextField src = (JTextField)e.getSource();
+          params.put(key, src.getText());
+          updateSqlPreview();
+        }
+
+      });
+      f.addFocusListener(new FocusListener() {
+
+        @Override
+        public void focusGained(FocusEvent arg0) {
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+          JTextField src = (JTextField)e.getSource();
+          params.put(key,  src.getText());
+          updateSqlPreview();
+        }
+        
+      });
+      add(new JLabel(label), gbc(0,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+      add(f, gbc(1,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+      row++;
+    }
   }
   
   private static GridBagConstraints gbc(int x, int y, int gw, int gh, double wx, double wy, int anchor, int fill) {
@@ -70,6 +126,64 @@ public class SampleInputPanel extends JPanel implements ActionListener {
       sqlPreviewScroll.setVisible(showSql.isSelected());
       validate();
     }
+    else if (src == sample) {
+      if (occTable == null || occId == null || occRow == null || valueColumn == null) {
+        JOptionPane.showMessageDialog(this, "Please select an event");
+        return;
+      }
+      Histogram h = provider.getHistogram(occTable, occId, occRow[0], (Column)valueColumn.getSelectedItem(), params);
+      fireSampleQueryPerformed(h, occRow[1].toString());
+      try {
+        ChartUtilities.saveChartAsPNG(new File("/Users/rickdn/chart.png"), h.getChart(occRow[1].toString()), 600, 600);
+      } catch (IOException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+    }
+    else if (src == valueColumn) {
+      updateSqlPreview();
+    }
+  }
+  
+  private void updateSqlPreview() {
+    Column valcol = (Column)valueColumn.getSelectedItem();
+    sqlPreview.setText(provider.getSampleQuery(occTable,
+        occId == null ? "null" : occId.name,
+        valcol == null ? "null" : valcol.name,
+        params));
+  }
+
+  @Override
+  public void queryPerformed(OccurrenceEvent e) {
+  }
+
+  @Override
+  public void tableChanged(OccurrenceEvent e) {
+    occTable = e.getTable();
+    valueColumn.removeAllItems();
+    for (Column col : provider.getColumns(occTable))
+      valueColumn.addItem(col);
+    updateSqlPreview();
+  }
+
+  @Override
+  public void idColumnChanged(OccurrenceEvent e) {
+    occId = e.getIdColumn();
+    updateSqlPreview();
+  }
+
+  @Override
+  public void rowChanged(OccurrenceEvent e) {
+    occRow = e.getRow();
+  }
+  
+  public void addSampleListener(SampleListener l) {
+    listeners.add(SampleListener.class, l);
+  }
+  
+  private void fireSampleQueryPerformed(Histogram h, String t) {
+   for (SampleListener l : listeners.getListeners(SampleListener.class)) 
+     l.queryPerformed(new SampleEvent(this, h, t));
   }
 
 }

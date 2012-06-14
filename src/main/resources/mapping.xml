@@ -1,39 +1,64 @@
-<maps xmlns="http://vpicu.chla.usc.edu/mapping"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://vpicu.chla.usc.edu/explorer/mapping mapping.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<maps xmlns="http://vpicu.chla.usc.edu/mapping">
+  <ontologies>
+    <ontology name="Pediatric Critical Care Ontology"
+      namespace="http://vpicu.chla.usc.edu/ontologies/picu#" prefix="picu:" location="picu-ontology.owl"/>
+  </ontologies>
   <sources>
-    <dbsource id="cerner" url="jdbc:jtds:sqlserver://hostname:1433/DBNAME;instance=INSTANCE"
-              name="Cerner" description="Cerner KIDS EHR mirror"/>
-    <dbsource id="ismnew" url="jdbc:oracle:thin:@127.0.0.1:1521:ORCL"
-              name="ISM New" description="Phillips CareVue Flowsheets, ISM New"/>
-    <csvsource id="cedars-flowsheet" url="file://cedars/flowsheet.csv" headers="asdf foo var hello world goodbye"
-               name="Cedars-Sinai Flowsheet" description="A flowsheet CSV file provided by Cedars-Sinai Hospital"/>
-  </sources>
-  <dataset name="VPS PRISM3 Dataset" description="variables for the VPS PRISM3 metric">
-    <variable dataset-id="1" name="Systolic Blood Pressure" description="a non-invasive systolic blood pressure in mmHg">
-      <dbsource ref="cerner"
-                schema="dbo"
-                table="clinical_event"
-                idcol="event_cd"
-                idval="688367"
-                valcol="result_val"/>
-      <dbsource ref="ismnew"
-                schema="ism"
-                table="chartevents"
-                idcol="itemid"
-                idval="764"
-                valcol="value1"/>
-      <csvsource ref="cedars-flowsheet"
-                 idcol="id"
-                 idval="123"
-                 valcol="result">
-                 <value-function language="javascript">
-                   valcol.split('/')[0]
-                 </value-function>
-      </csvsource>
+    <source id="cerner" headers="id event_cd result_val event_end_dt_tm"
+      idcol="event_cd" valcol="result_val" timecol="event_end_dt_tm"/>
+    <source id="ism_chartevents" headers="id itemid value1 value2 charttime"
+      idcol="itemid" valcol="value1" timecol="charttime"/>
+    <source id="ism_medevents" headers="id itemid dose charttime"
+      idcol="itemid" valcol="dose" timecol="charttime"/>
+    <source id="cedars" headers="event result time"
+      idcol="event" valcol="result" timecol="time"/>
+  </sources> 
+  <dataset id="vpsDataset">
+    <variable id="1" name="Systolic Blood Pressure" uri="picu:SBP">
+      <row source="cerner" idval="123"/>
+      <row source="ism_chartevents" idval="111"/>
+      <row source="cedars" idval="Blood Pressure">
+        <valfunc language="javascript">value.split('/')[0]</valfunc>
+        <valfunc language="ruby">value.split('/')[0]</valfunc>
+      </row>
     </variable>
-    <variable dataset-id="2" >
-      <dbsource ref="ismnew" valcol="value1"/>
+    <variable id="2" name="Diastolic Blood Pressure" uri="picu:DBP">
+      <row source="cerner" idval="234"/>
+      <row source="ism_chartevents" idval="111" valcol="value2"/>
+      <row source="cedars" idval="Blood Pressure">
+        <valfunc language="javascript">value.split('/')[1]</valfunc>
+        <valfunc language="ruby">value.split('/')[1]</valfunc>
+      </row>
+    </variable>
+    <variable id="3" name="Dopamine" uri="picu:Dopamine">
+      <row source="cerner" idval="345"/>
+      <row source="ism_medevents" idval="11"/>
+      <row source="cedars" idval="Dopamine"/>
+    </variable>
+    <variable id="4" name="Fraction-Inspired Oxygen" uri="picu:FiO2">
+      <row source="cerner" idval="456"/>
+      <row source="ism_chartevents" idval="222">
+        <valfunc language="javascript">Float(value) * 100</valfunc>
+        <valfunc language="ruby">Float(value) * 100</valfunc>
+      </row>
+      <row source="cedars" idval="FiO2"/>
+    </variable>
+  </dataset>
+  <dataset id="combineBP">
+    <variable id="1" name="All Blood Pressures">
+      <row source="cerner" idval="123"/>
+      <row source="ism_chartevents" idval="111"/>
+      <row source="cedars" idval="Blood Pressure">
+        <valfunc language="javascript">value.split('/')[0]</valfunc>
+        <valfunc language="ruby">value.split('/')[0]</valfunc>
+      </row>
+      <row source="cerner" idval="234"/>
+      <row source="ism_chartevents" idval="111" valcol="value2"/>
+      <row source="cedars" idval="Blood Pressure">
+        <valfunc language="javascript">value.split('/')[1]</valfunc>
+        <valfunc language="ruby">value.split('/')[1]</valfunc>
+      </row>
     </variable>
   </dataset>
 </maps>

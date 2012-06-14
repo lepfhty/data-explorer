@@ -23,7 +23,7 @@ public class JtdsProvider extends BaseProvider {
   @Override
   public String getOccurrenceQuery(String occurrenceTable, String occurrenceIdCol,
       String lookupTable, String lookupIdCol, String labelCol, Map<String, Object> sample) {
-    return MessageFormat.format("SELECT DISTINCT a.{1}, l.{4}, a.count FROM ("
+    String sql = MessageFormat.format("SELECT DISTINCT a.{1}, l.{4}, a.count FROM ("
         + "   SELECT {1}, COUNT(*) AS count"
         + "   FROM {0}"
         + "   TABLESAMPLE ({5} PERCENT)"
@@ -32,23 +32,25 @@ public class JtdsProvider extends BaseProvider {
         + " ON l.{3} = a.{1}"
         + " ORDER BY a.count DESC",
         occurrenceTable, occurrenceIdCol, lookupTable, lookupIdCol, labelCol, sample.get(MSSQL_TABLESAMPLE));
+    return sql.replaceAll("\\s+", " ");
   }
 
   @Override
   public String getOccurrenceQuery(String occurrenceTable, String occurrenceIdCol,
       String labelCol, Map<String, Object> sample) {
-    return MessageFormat.format("SELECT {1}, {2}, COUNT(*) AS count"
+    String sql = MessageFormat.format("SELECT {1}, {2}, COUNT(*) AS count"
         + " FROM {0}"
         + " TABLESAMPLE ({3} PERCENT)"
         + " GROUP BY {1}, {2}"
         + " ORDER BY count DESC",
         occurrenceTable, occurrenceIdCol, labelCol, sample.get(MSSQL_TABLESAMPLE));
+    return sql.replaceAll("\\s+", " ");
   }
 
   @Override
   public String getSampleQuery(String occurrenceTable, String occurrenceIdCol, String occurrenceValueCol,
       Map<String, Object> sample) {
-    return MessageFormat.format("SELECT {2}, COUNT(*) AS count FROM ("
+    String sql = MessageFormat.format("SELECT {2}, COUNT(*) AS count FROM ("
         + "   SELECT TOP {3} {2}"
         + "   FROM {0}"
         + "   TABLESAMPLE ({4} PERCENT)"
@@ -57,14 +59,18 @@ public class JtdsProvider extends BaseProvider {
         + " GROUP BY {2}"
         + " ORDER BY {2}",
         occurrenceTable, occurrenceIdCol, occurrenceValueCol,
-        sample.get(MSSQL_TOPN), sample.get(MSSQL_TABLESAMPLE), sample.get(MSSQL_CHECKSUM));
+        sample.get(MSSQL_TOPN).toString(),
+        sample.get(MSSQL_TABLESAMPLE).toString(),
+        sample.get(MSSQL_CHECKSUM).toString());
+    return sql.replaceAll("\\s+", " ");
   }
 
   @Override
   public Map<String, Object> createDefaultSampleParams() {
     Map<String, Object> params = new HashMap<String, Object>();
-    params.put(MSSQL_TABLESAMPLE, 20);
+    params.put(MSSQL_TABLESAMPLE, 1);
     params.put(MSSQL_TOPN, 1000);
+    params.put(MSSQL_CHECKSUM, 5);
     return params;
   }
 

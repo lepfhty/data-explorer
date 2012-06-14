@@ -14,13 +14,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import edu.usc.chla.vpicu.explorer.BaseProvider;
 
-public class OccurrenceTablePanel extends JPanel implements OccurrenceListener {
+public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, ListSelectionListener {
 
   private static final long serialVersionUID = 1L;
 
@@ -32,6 +36,8 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener {
   private final JCheckBox matchCase;
 
   private final VocabTableModel model;
+  
+  private final EventListenerList listeners = new EventListenerList();
 
   public OccurrenceTablePanel(BaseProvider provider) {
     setLayout(new BorderLayout());
@@ -52,6 +58,11 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener {
     matchCase.addActionListener(model);
     table = new JTable(model);
     add(new JScrollPane(table));
+    
+    table.setRowSelectionAllowed(true);
+    table.setColumnSelectionAllowed(false);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.getSelectionModel().addListSelectionListener(this);
   }
 
   public void setData(List<Object[]> data) {
@@ -98,8 +109,44 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener {
   }
 
   @Override
-  public void occurrenceQueryPerformed(List<Object[]> results) {
-    setData(results);
+  public void queryPerformed(OccurrenceEvent e) {
+    setData(e.getQueryResults());
+  }
+
+  @Override
+  public void tableChanged(OccurrenceEvent e) {
+  }
+
+  @Override
+  public void idColumnChanged(OccurrenceEvent e) {
+  }
+
+  @Override
+  public void rowChanged(OccurrenceEvent e) {
+  }
+  
+  public void addOccurrenceListener(OccurrenceListener l) {
+    listeners.add(OccurrenceListener.class, l);
+  }
+  
+  private void fireRowChanged(Object[] newValue) {
+    for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class)) {
+      l.rowChanged(OccurrenceEvent.createRowChanged(this, newValue));
+    }
+  }
+
+  @Override
+  public void valueChanged(ListSelectionEvent e) {
+    int r = table.getSelectedRow();
+    if (r < 0) {
+      fireRowChanged(null);
+      return;
+    }
+    int c = table.getColumnCount();
+    Object[] row = new Object[c];
+    for (int i = 0; i < c; i++)
+      row[i] = table.getValueAt(r, i);
+    fireRowChanged(row);
   }
 
 }
