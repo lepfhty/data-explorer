@@ -24,15 +24,15 @@ public class MainFrame extends JFrame {
     vocab.getInputPanel().addOccurrenceListener(sample.getInputPanel());
     vocab.getTablePanel().addOccurrenceListener(sample.getInputPanel());
     
-    JPanel synonyms = new SynonymPanel();
+    //JPanel synonyms = new SynonymPanel();
 
-    JPanel status = new StatusPanel();
+    //JPanel status = new StatusPanel();
 
     setLayout(new BorderLayout());
     add(vocab, BorderLayout.CENTER);
     add(sample, BorderLayout.EAST);
-    add(synonyms, BorderLayout.WEST);
-    add(status, BorderLayout.SOUTH);
+    //add(synonyms, BorderLayout.WEST);
+    //add(status, BorderLayout.SOUTH);
 
     pack();
   }

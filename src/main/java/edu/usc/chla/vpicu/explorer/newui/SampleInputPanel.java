@@ -8,8 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -24,8 +22,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.EventListenerList;
-
-import org.jfree.chart.ChartUtilities;
 
 import edu.usc.chla.vpicu.explorer.BaseProvider;
 import edu.usc.chla.vpicu.explorer.Column;
@@ -98,7 +94,7 @@ public class SampleInputPanel extends JPanel implements ActionListener, Occurren
       f.addFocusListener(new FocusListener() {
 
         @Override
-        public void focusGained(FocusEvent arg0) {
+        public void focusGained(FocusEvent e) {
         }
 
         @Override
@@ -133,12 +129,6 @@ public class SampleInputPanel extends JPanel implements ActionListener, Occurren
       }
       Histogram h = provider.getHistogram(occTable, occId, occRow[0], (Column)valueColumn.getSelectedItem(), params);
       fireSampleQueryPerformed(h, occRow[1].toString());
-      try {
-        ChartUtilities.saveChartAsPNG(new File("/Users/rickdn/chart.png"), h.getChart(occRow[1].toString()), 600, 600);
-      } catch (IOException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
-      }
     }
     else if (src == valueColumn) {
       updateSqlPreview();
