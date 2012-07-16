@@ -1,5 +1,6 @@
 package edu.usc.chla.vpicu.explorer;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,20 +17,45 @@ public class MySqlProvider extends BaseProvider {
   @Override
   public String getOccurrenceQuery(String occurrenceTable, String occurrenceIdCol,
       String lookupTable, String lookupIdCol, String labelCol, Map<String, Object> sample) {
-    return "";
+    String sql = MessageFormat.format("SELECT DISTINCT a.{1}, l.{4}, a.count FROM ("
+        + "   SELECT {1}, COUNT(*) AS count"
+        + "   FROM {0}"
+        + "   WHERE RAND() < ({5}/100.0)"
+        + "   GROUP BY {1}) a"
+        + " INNER JOIN {2} l"
+        + " ON l.{3} = a.{1}"
+        + " ORDER BY a.count DESC",
+        occurrenceTable, occurrenceIdCol, lookupTable, lookupIdCol, labelCol, sample.get(MYSQL_PERCENT));
+    return sql.replaceAll("\\s+", " ");
   }
 
   @Override
   public String getOccurrenceQuery(String occurrenceTable, String occurrenceIdCol,
       String labelCol, Map<String, Object> sample) {
-    return "";
+    String sql = MessageFormat.format("SELECT {1}, {2}, COUNT(*) AS count"
+        + " FROM {0}"
+        + " WHERE RAND() < ({3}/100.0)"
+        + " GROUP BY {1}, {2}"
+        + " ORDER BY count DESC",
+        occurrenceTable, occurrenceIdCol, labelCol, sample.get(MYSQL_PERCENT));
+    return sql.replaceAll("\\s+", " ");
   }
 
   @Override
   public String getSampleQuery(String occurrenceTable, String occurrenceIdCol, String occurrenceValueCol,
       Map<String, Object> sample) {
-	  return "";
-  }
+    String sql = MessageFormat.format("SELECT {2}, COUNT(*) AS count FROM ("
+        + "   SELECT {2}"
+        + "   FROM {0}"
+        + "   WHERE {1} = ?"
+        + "   AND RAND() < ({4}/100.0)"
+        + "   LIMIT {5}) a"
+        + " GROUP BY {2}"
+        + " ORDER BY {2}",
+        occurrenceTable, occurrenceIdCol, occurrenceValueCol,
+        sample.get(MYSQL_PERCENT).toString(),
+        sample.get(MYSQL_LIMIT).toString());
+    return sql.replaceAll("\\s+", " ");  }
 
   @Override
   public Map<String, Object> createDefaultSampleParams() {

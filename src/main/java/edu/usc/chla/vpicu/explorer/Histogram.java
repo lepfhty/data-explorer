@@ -27,7 +27,7 @@ public class Histogram extends TreeMap<Comparable<?>, Long> {
   @Override
   public Long put(Comparable<?> key, Long value) {
     // don't handle empty strings
-    if (key.toString().trim().isEmpty())
+    if (key == null || key.toString().trim().isEmpty())
       return null;
     
     if (init) {

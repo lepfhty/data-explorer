@@ -37,9 +37,9 @@ http://www.springframework.org/schema/beans/spring-beans.xsd">
     <property name="dataSource">
       <bean class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
         <property name="driverClassName" value="oracle.jdbc.OracleDriver"/>
-        <property name="url" value=""/>
-        <property name="username" value=""/>
-        <property name="password" value=""/>
+        <property name="url" value="jdbc:oracle:thin:@10.101.21.31:1521:orcl"/>
+        <property name="username" value="ism"/>
+        <property name="password" value="ism4u"/>
       </bean>
     </property>
   </bean>
