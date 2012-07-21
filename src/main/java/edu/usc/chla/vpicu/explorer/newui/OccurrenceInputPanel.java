@@ -86,9 +86,10 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     showSql = new JCheckBox("Show SQL Preview");
     showSql.addActionListener(this);
     add(showSql, gbc(0,4+params.size(),1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
+
     getVocab = new JButton("Get Vocabulary");
     add(getVocab, gbc(3,4+params.size(),1,1,0,0, GridBagConstraints.LINE_END,GridBagConstraints.NONE));
-    
+
     sqlPreview = new JTextArea(4, 10);
     sqlPreview.setLineWrap(true);
     sqlPreview.setWrapStyleWord(true);
@@ -211,7 +212,7 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
                 params);
         fireOccurrenceQueryPerformed(occurrences);
       } catch (NullPointerException npe) {
-        JOptionPane.showMessageDialog(this, "Missing column selection", "ERROR", ERROR);
+        JOptionPane.showMessageDialog(this, "Missing column selection", "Warning", JOptionPane.WARNING_MESSAGE);
       }
     }
   }

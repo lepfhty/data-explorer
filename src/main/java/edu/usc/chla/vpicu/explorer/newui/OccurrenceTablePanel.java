@@ -57,6 +57,7 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, 
     filterField.getDocument().addDocumentListener(model);
     matchCase.addActionListener(model);
     table = new JTable(model);
+    table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     add(new JScrollPane(table));
     
     table.setRowSelectionAllowed(true);
