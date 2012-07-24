@@ -5,16 +5,27 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.apache.tomcat.jdbc.pool.PoolConfiguration;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 public class OracleProvider extends BaseProvider {
 
   public static final String ORACLE_ROWNUM = "Oracle RowNum";
   public static final String ORACLE_RANDOM = "Oracle Random Percent";
   public static final String ORACLE_SAMPLE = "Oracle Sample Percent";
+  
+  public OracleProvider() {
+    super();
+  }
+  
+  public OracleProvider(String host, int port, String user, String pass, String sidsvc, boolean isService) {
+    DataSource ds = new DataSource();
+    ds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+    ds.setUrl(MessageFormat.format("jdbc:oracle:thin:@{0}:{1,number,#}{2}{3}",
+        host, port, isService ? "/" : ":", sidsvc));
+    ds.setUsername(user);
+    ds.setPassword(pass);
+    setDataSource(ds);
+  }
 
   @Override
   protected String getTableSchema() {
@@ -86,16 +97,5 @@ public class OracleProvider extends BaseProvider {
     params.put(ORACLE_SAMPLE, 5);
     return params;
   }
-
-  public static void main(String[] args) {
-    PoolConfiguration conf = new PoolProperties();
-    conf.setDriverClassName("oracle.jdbc.driver.OracleDriver");
-    conf.setUrl("jdbc:oracle:thin:@10.101.21.31:1521:orcl");
-    conf.setUsername("ism");
-    conf.setPassword("ism4u");
-    DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource(conf);
-    OracleProvider p = new OracleProvider();
-    p.setDataSource(ds);
-
-  }
+  
 }

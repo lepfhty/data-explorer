@@ -4,16 +4,33 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.apache.tomcat.jdbc.pool.PoolConfiguration;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 public class JtdsProvider extends BaseProvider {
 
   public static final String MSSQL_TABLESAMPLE = "MSSQL TableSample Percent";
   public static final String MSSQL_TOPN = "MSSQL TopN Rows";
   public static final String MSSQL_CHECKSUM = "MSSQL CheckSum Percent";
+  
+  public JtdsProvider() {
+    super();
+  }
+  
+  public JtdsProvider(String host, int port, String user, String pass, String instance, String db, String props) {
+    DataSource ds = new DataSource();
+    ds.setDriverClassName("net.sourceforge.jtds.jdbc.Driver");
+    String url = MessageFormat.format("jdbc:jtds:sqlserver://{0}:{1,number,#}", host, port);
+    if (db != null && !db.isEmpty())
+      url += "/" + db;
+    if (instance != null && !instance.isEmpty())
+      url += ";instance=" + instance;
+    if (props != null && !props.isEmpty())
+      url += ";" + props;
+    ds.setUrl(url);
+    ds.setUsername(user);
+    ds.setPassword(pass);
+    setDataSource(ds);
+  }
 
   @Override
   protected String getTableSchema() {
@@ -80,34 +97,5 @@ public class JtdsProvider extends BaseProvider {
     params.put(MSSQL_TABLESAMPLE, 1);
     return params;
   }
-
-  public static void main(String[] args) {
-    PoolConfiguration conf = new PoolProperties();
-    conf.setDriverClassName("net.sourceforge.jtds.jdbc.Driver");
-    conf.setUrl("jdbc:jtds:sqlserver://CHLADB01.la.ad.chla.org:1433/APPDB;instance=MSS09BPM");
-    conf.setUsername("vpicu");
-    conf.setPassword("vpicu100");
-    DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource(conf);
-    JtdsProvider p = new JtdsProvider();
-    p.setDataSource(ds);
-
-//    for (String t : p.getTableNames()) {
-//      System.out.println(t);
-//      for (Column c : p.getColumns(t))
-//        System.out.println(c);
-//    }
-
-//    for (Object o : p.getDistinctColumnValues("lu_clinical_events", "event_cd"))
-//      System.out.println(o.toString());
-
-//    Frequency f = p.getFrequency("clinical_event", new Column("event_cd",Types.FLOAT,"FLOAT"), 688867, "result_val", null);
-//    System.out.println(f);
-//    System.out.println(f.getSumFreq());
-
-
-  }
-
-
-
 
 }

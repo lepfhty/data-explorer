@@ -4,15 +4,30 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.apache.tomcat.jdbc.pool.PoolConfiguration;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.apache.tomcat.jdbc.pool.DataSource;
 
 public class MySqlProvider extends BaseProvider {
 
   public static final String MYSQL_LIMIT = "MySQL Limit";
   public static final String MYSQL_PERCENT = "MySQL Percent";
+  
+  public MySqlProvider() {
+    super();
+  }
+  
+  public MySqlProvider(String host, int port, String user, String pass, String db, String props) {
+    DataSource ds = new DataSource();
+    ds.setDriverClassName("com.mysql.jdbc.Driver");
+    String url = MessageFormat.format("jdbc:mysql://{0}:{1,number,#}", host, port);
+    if (db != null && !db.isEmpty())
+      url += "/" + db;
+    if (props != null && !props.isEmpty())
+      url += "?" + props;
+    ds.setUrl(url);
+    ds.setUsername(user);
+    ds.setPassword(pass);
+    setDataSource(ds);
+  }
 
   @Override
   public String getOccurrenceQuery(String occurrenceTable, String occurrenceIdCol,
@@ -70,18 +85,6 @@ public class MySqlProvider extends BaseProvider {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put(MYSQL_PERCENT, 20);
     return params;
-  }
-
-  public static void main(String[] args) {
-    PoolConfiguration conf = new PoolProperties();
-    conf.setDriverClassName("com.mysql.jdbc.Driver");
-    conf.setUrl("jdbc:mysql://sherylj.la.ad.chla.org:3306/vpsdb");
-    conf.setUsername("root");
-    conf.setPassword("welcome1");
-    DataSource ds = new org.apache.tomcat.jdbc.pool.DataSource(conf);
-    MySqlProvider p = new MySqlProvider();
-    p.setDataSource(ds);
-
   }
 
 }

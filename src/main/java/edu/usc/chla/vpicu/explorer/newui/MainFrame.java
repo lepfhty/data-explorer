@@ -2,18 +2,11 @@ package edu.usc.chla.vpicu.explorer.newui;
 
 import java.awt.BorderLayout;
 
-import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JRadioButtonMenuItem;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import javax.swing.JSplitPane;
 
 import edu.usc.chla.vpicu.explorer.BaseProvider;
-import edu.usc.chla.vpicu.explorer.JtdsProvider;
-import edu.usc.chla.vpicu.explorer.OracleProvider;
+import edu.usc.chla.vpicu.explorer.newui.connection.ConnectionDialog;
 
 public class MainFrame extends JFrame {
 
@@ -33,8 +26,8 @@ public class MainFrame extends JFrame {
     //JPanel status = new StatusPanel();
 
     setLayout(new BorderLayout());
-    add(vocab, BorderLayout.CENTER);
-    add(sample, BorderLayout.EAST);
+    JSplitPane sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, vocab, sample);
+    add(sp, BorderLayout.CENTER);
     //add(synonyms, BorderLayout.WEST);
     //add(status, BorderLayout.SOUTH);
     
@@ -57,13 +50,11 @@ public class MainFrame extends JFrame {
   }
 
   public static void main(String[] args) {
-    ApplicationContext ctx = new ClassPathXmlApplicationContext("META-INF/context.xml");
-    for (String s : ctx.getBeanNamesForType(BaseProvider.class))
-      System.out.println(s);
-    JtdsProvider jtds = (JtdsProvider) ctx.getBean("jtdsProvider");
-//    MySqlProvider mysql = (MySqlProvider) ctx.getBean("mysqlProvider");
-    OracleProvider oracle  = (OracleProvider) ctx.getBean("oracleProvider");
-    MainFrame m = new MainFrame(jtds);
+    ConnectionDialog d = new ConnectionDialog();
+    d.setVisible(true);
+    if (d.getProvider() == null)
+      System.exit(0);
+    MainFrame m = new MainFrame(d.getProvider());
     m.setVisible(true);
   }
 
