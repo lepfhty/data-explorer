@@ -21,38 +21,8 @@ public class OracleTab extends JDBCTab implements ActionListener {
   public static final String SERVICE = "Service";
   public static final String SID = "SID";
   
-  private final Map<String, AbstractButton> buttons = new HashMap<String, AbstractButton>();
+  private Map<String, AbstractButton> buttons;
   
-  public OracleTab() {
-    addConnectionFields();
-    addServiceRows();
-    addJDBCFields();
-    addVerticalGlue();
-  }
-  
-  private void addServiceRows() {
-    ButtonGroup group = new ButtonGroup();
-    JRadioButton sid = new JRadioButton("SID");
-    group.add(sid);
-    buttons.put(SID, sid);
-    sid.addActionListener(this);
-    add(sid, gbc(0,row,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.NONE));
-    JTextField sidf = new JTextField();
-    fields.put(SID, sidf);
-    add(sidf, gbc(1,row++,1,1,1,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
-    
-    JRadioButton svc = new JRadioButton("Service");
-    group.add(svc);
-    buttons.put(SERVICE, svc);
-    svc.addActionListener(this);
-    add(svc, gbc(0,row,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.NONE));
-    JTextField svcf = new JTextField();
-    fields.put(SERVICE, svcf);
-    add(svcf, gbc(1,row++,1,1,1,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
-    
-    
-  }
-
   @Override
   public BaseProvider getProvider() {
     return new OracleProvider(fields.get(HOST).getText(),
@@ -64,9 +34,45 @@ public class OracleTab extends JDBCTab implements ActionListener {
   }
   
   @Override
+  protected void addCustomFields() {
+    buttons = new HashMap<String, AbstractButton>();
+    ButtonGroup group = new ButtonGroup();
+    
+    JRadioButton sid = new JRadioButton("SID");
+    sid.addFocusListener(this);
+    sid.addActionListener(this);
+    sid.setSelected(true);
+    group.add(sid);
+    buttons.put(SID, sid);
+    add(sid, gbc(0,row,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.NONE));
+    JTextField sidf = new JTextField();
+    fields.put(SID, sidf);
+    add(sidf, gbc(1,row++,1,1,1,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
+    
+    JRadioButton svc = new JRadioButton("Service");
+    svc.addFocusListener(this);
+    svc.addActionListener(this);
+    group.add(svc);
+    buttons.put(SERVICE, svc);
+    add(svc, gbc(0,row,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.NONE));
+    JTextField svcf = new JTextField();
+    svcf.setEnabled(false);
+    fields.put(SERVICE, svcf);
+    add(svcf, gbc(1,row++,1,1,1,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
+    
+    addJdbcFieldListeners(SID, SERVICE);
+  }
+
+  @Override
+  protected int getDefaultPort() {
+    return 1521;
+  }
+  
+  @Override
   public void actionPerformed(ActionEvent e) {
     fields.get(SID).setEnabled(buttons.get(SID).isSelected());
     fields.get(SERVICE).setEnabled(buttons.get(SERVICE).isSelected());
+    super.actionPerformed(e);
   }
-  
+
 }

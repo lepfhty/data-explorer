@@ -8,18 +8,27 @@ import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 
-public class SqliteProvider extends BaseProvider {
+public class H2Provider extends BaseProvider {
 
-  private static final String SQLITE_LIMIT = "SQLite Limit";
+  private static final String H2_LIMIT = "H2 Limit";
 
-  public SqliteProvider() {
+  public H2Provider() {
     super();
   }
 
-  public SqliteProvider(File dbfile) {
+  public H2Provider(File dbfile, String user, String pass) {
     DataSource ds = new DataSource();
-    ds.setDriverClassName("org.sqlite.JDBC");
-    ds.setUrl("jdbc:sqlite:" + dbfile.getAbsolutePath());
+    ds.setDriverClassName("org.h2.Driver");
+    String dbpath = "";
+    if (dbfile != null) {
+      if (dbfile.getPath().endsWith(".h2.db"))
+        dbpath = dbfile.getPath().replaceAll(".h2.db$", "");
+      else
+        dbfile.getPath();
+    }
+    ds.setUrl("jdbc:h2:" + dbpath);
+    ds.setUsername(user);
+    ds.setPassword(pass);
     setDataSource(ds);
   }
 
@@ -56,14 +65,14 @@ public class SqliteProvider extends BaseProvider {
         + " GROUP BY {2}"
         + " ORDER BY {2}",
         occurrenceTable, occurrenceIdCol, occurrenceValueCol,
-        sample.get(SQLITE_LIMIT));
+        sample.get(H2_LIMIT));
     return sql;
   }
 
   @Override
   public Map<String, Object> createDefaultSampleParams() {
     Map<String, Object> params = new HashMap<String, Object>();
-    params.put(SQLITE_LIMIT, 1000);
+    params.put(H2_LIMIT, 1000);
     return params;
   }
 

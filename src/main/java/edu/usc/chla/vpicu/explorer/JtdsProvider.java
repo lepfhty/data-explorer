@@ -11,11 +11,11 @@ public class JtdsProvider extends BaseProvider {
   public static final String MSSQL_TABLESAMPLE = "MSSQL TableSample Percent";
   public static final String MSSQL_TOPN = "MSSQL TopN Rows";
   public static final String MSSQL_CHECKSUM = "MSSQL CheckSum Percent";
-  
+
   public JtdsProvider() {
     super();
   }
-  
+
   public JtdsProvider(String host, int port, String user, String pass, String instance, String db, String props) {
     DataSource ds = new DataSource();
     ds.setDriverClassName("net.sourceforge.jtds.jdbc.Driver");
@@ -68,7 +68,7 @@ public class JtdsProvider extends BaseProvider {
   public String getSampleQuery(String occurrenceTable, String occurrenceIdCol, String occurrenceValueCol,
       Map<String, Object> sample) {
     String sql = MessageFormat.format("SELECT {2}, COUNT(*) AS count FROM ("
-        + "   SELECT TOP {3} {2}"
+        + "   SELECT TOP {3,number,#} {2}"
         + "   FROM {0}"
         + "   TABLESAMPLE ({4} PERCENT)"
         + "   WHERE {1} = ?"
@@ -76,9 +76,9 @@ public class JtdsProvider extends BaseProvider {
         + " GROUP BY {2}"
         + " ORDER BY {2}",
         occurrenceTable, occurrenceIdCol, occurrenceValueCol,
-        sample.get(MSSQL_TOPN).toString(),
-        sample.get(MSSQL_TABLESAMPLE).toString(),
-        sample.get(MSSQL_CHECKSUM).toString());
+        sample.get(MSSQL_TOPN),
+        sample.get(MSSQL_TABLESAMPLE),
+        sample.get(MSSQL_CHECKSUM));
     return sql.replaceAll("\\s+", " ");
   }
 

@@ -11,15 +11,6 @@ public class SQLServerTab extends JDBCTab {
   public static final String DATABASE = "Database";
   public static final String PROPERTIES = "Properties";
   
-  public SQLServerTab() {
-    addConnectionFields();
-    addInputRow(INSTANCE);
-    addInputRow(DATABASE);
-    addInputRow(PROPERTIES);
-    addJDBCFields();
-    addVerticalGlue();
-  }
-  
   @Override
   public BaseProvider getProvider() {
     return new JtdsProvider(fields.get(HOST).getText(),
@@ -29,6 +20,19 @@ public class SQLServerTab extends JDBCTab {
         fields.get(INSTANCE).getText(),
         fields.get(DATABASE).getText(),
         fields.get(PROPERTIES).getText());
+  }
+
+  @Override
+  protected void addCustomFields() {
+    addInputRow(INSTANCE);
+    addInputRow(DATABASE);
+    addInputRow(PROPERTIES);
+    addJdbcFieldListeners(INSTANCE, DATABASE, PROPERTIES);
+  }
+
+  @Override
+  protected int getDefaultPort() {
+    return 1433;
   }
   
 }

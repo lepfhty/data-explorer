@@ -21,7 +21,7 @@ public class OracleProvider extends BaseProvider {
     DataSource ds = new DataSource();
     ds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
     ds.setUrl(MessageFormat.format("jdbc:oracle:thin:@{0}:{1,number,#}{2}{3}",
-        host, port, isService ? "/" : ":", sidsvc));
+        isService ? "//" + host : host, port, isService ? "/" : ":", sidsvc));
     ds.setUsername(user);
     ds.setPassword(pass);
     setDataSource(ds);

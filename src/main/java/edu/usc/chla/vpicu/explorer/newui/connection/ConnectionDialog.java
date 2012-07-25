@@ -16,28 +16,30 @@ import edu.usc.chla.vpicu.explorer.BaseProvider;
 public class ConnectionDialog extends JDialog implements ActionListener {
 
   private static final long serialVersionUID = 1L;
-  
-  private JTabbedPane tabs;
+
+  private final JTabbedPane tabs;
   private BaseProvider provider;
-  
-  private JButton connect;
-  private JButton cancel;
+
+  private final JButton connect;
+  private final JButton cancel;
 
   public ConnectionDialog() {
     setModal(true);
     setLayout(new BorderLayout());
     tabs = new JTabbedPane();
     JPanel csvtab = new CSVTab();
+    JPanel h2tab = new H2Tab();
     JPanel sqlitetab = new SQLiteTab();
     JPanel mysqltab = new MySQLTab();
     JPanel oracletab = new OracleTab();
     JPanel sqlservertab = new SQLServerTab();
     tabs.add("CSV", csvtab);
+    tabs.add("H2", h2tab);
     tabs.add("SQLite", sqlitetab);
     tabs.add("MySQL", mysqltab);
     tabs.add("Oracle", oracletab);
     tabs.add("SQL Server", sqlservertab);
-    
+
     add(tabs);
     setPreferredSize(new Dimension(640,480));
     connect = new JButton("Connect");
@@ -48,15 +50,15 @@ public class ConnectionDialog extends JDialog implements ActionListener {
     box.add(connect);
     add(box, BorderLayout.SOUTH);
     pack();
-    
+
     cancel.addActionListener(this);
     connect.addActionListener(this);
   }
-  
+
   public BaseProvider getProvider() {
     return provider;
   }
-  
+
   public static void main(String[] args) {
     new ConnectionDialog().setVisible(true);
   }
