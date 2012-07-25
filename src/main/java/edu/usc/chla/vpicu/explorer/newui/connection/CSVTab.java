@@ -89,7 +89,7 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     choosers.get(CSVFILE).addPropertyChangeListener(AbstractButton.TEXT_CHANGED_PROPERTY, importListener);
     fields.get(TABLENAME).getDocument().addDocumentListener(importListener);
 
-    // create row when "Import" button clicked
+    // create row when "Add Table" button clicked
     buttons.get(ADDTABLE).addActionListener(new ActionListener() {
 
       @Override
@@ -97,11 +97,14 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
         String file = choosers.get(CSVFILE).getSelectedFile().getAbsolutePath();
         String name = fields.get(TABLENAME).getText();
         model.addRow(new Object[] { file, name });
+        // clear selection
+        choosers.get(CSVFILE).clearSelectedFile();
+        fields.get(TABLENAME).setText("");
       }
 
     });
 
-    // delete row when "Delete" button clicked
+    // delete row when "Remove Table" button clicked
     buttons.get(REMOVETABLE).addActionListener(new ActionListener() {
 
       @Override
@@ -142,7 +145,6 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
       H2Provider p = new H2Provider(h2db, "sa", "");
       StringBuilder sql = new StringBuilder("CREATE TABLE ");
       sql.append(table).append(" AS SELECT * FROM CSVREAD('").append(csv.getPath()).append("');");
-      System.out.println(sql.toString());
       p.execute(sql.toString());
     }
   }
@@ -151,7 +153,9 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
   public BaseProvider getProvider() {
     if (h2db == null) {
       try {
-        h2db = File.createTempFile("csv", ".h2.db");
+        h2db = File.createTempFile("csv", ".tmp");
+        h2db.deleteOnExit();
+        saveFile(h2db);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -207,8 +211,16 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     }
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-      if (evt.getPropertyName().equals(AbstractButton.TEXT_CHANGED_PROPERTY))
-        update();
+      if (evt.getPropertyName().equals(AbstractButton.TEXT_CHANGED_PROPERTY)) {
+        // auto fill "Table Name" field (which triggers update())
+        File f = chooser.getSelectedFile();
+        if (f != null) {
+          String basename = f.getName();
+          int i = basename.lastIndexOf('.');
+          String name = basename.substring(0, i);
+          field.setText(name);
+        }
+      }
     }
   }
 

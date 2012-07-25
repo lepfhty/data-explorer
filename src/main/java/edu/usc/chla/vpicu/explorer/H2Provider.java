@@ -24,9 +24,9 @@ public class H2Provider extends BaseProvider {
       if (dbfile.getPath().endsWith(".h2.db"))
         dbpath = dbfile.getPath().replaceAll(".h2.db$", "");
       else
-        dbfile.getPath();
+        dbpath = dbfile.getPath();
     }
-    ds.setUrl("jdbc:h2:" + dbpath);
+    ds.setUrl("jdbc:h2:file:" + dbpath);
     ds.setUsername(user);
     ds.setPassword(pass);
     setDataSource(ds);

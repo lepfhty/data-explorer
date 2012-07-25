@@ -1,6 +1,7 @@
 package edu.usc.chla.vpicu.explorer.newui.connection;
 
 import java.awt.FileDialog;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,14 +15,18 @@ public class FileChooserButton extends JButton implements ActionListener {
 
   private static final long serialVersionUID = 1L;
 
+  private final String prompt;
   private final FileDialog fdialog;
   private String ext;
   private File selectedFile;
+  private final Font defaultFont;
   private SaveFileCallback callback;
 
   public FileChooserButton(String text) {
     super(text);
-    fdialog = new FileDialog((Frame)null, getText());
+    prompt = text;
+    defaultFont = getFont();
+    fdialog = new FileDialog((Frame)null, prompt);
     addActionListener(this);
   }
 
@@ -45,6 +50,15 @@ public class FileChooserButton extends JButton implements ActionListener {
 
   public File getSelectedFile() {
     return selectedFile;
+  }
+
+  public void clearSelectedFile() {
+    selectedFile = null;
+    fdialog.setFile(null);
+    setText(prompt);
+    setFont(defaultFont);
+    setToolTipText(null);
+    setIcon(null);
   }
 
   public void setSaveFileCallback(SaveFileCallback cb) {
