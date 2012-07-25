@@ -36,7 +36,7 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, 
   private final JCheckBox matchCase;
 
   private final VocabTableModel model;
-  
+
   private final EventListenerList listeners = new EventListenerList();
 
   public OccurrenceTablePanel(BaseProvider provider) {
@@ -59,7 +59,7 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, 
     table = new JTable(model);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     add(new JScrollPane(table));
-    
+
     table.setRowSelectionAllowed(true);
     table.setColumnSelectionAllowed(false);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -82,6 +82,8 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, 
     @Override
     protected boolean accept(Object[] row) {
       String filter = filterField.getText();
+      if (row[1] == null)
+        return false;
       String value = row[1].toString();
       return row.length > 2 &&
           (matchCase.isSelected() ? value.contains(filter)
@@ -125,11 +127,11 @@ public class OccurrenceTablePanel extends JPanel implements OccurrenceListener, 
   @Override
   public void rowChanged(OccurrenceEvent e) {
   }
-  
+
   public void addOccurrenceListener(OccurrenceListener l) {
     listeners.add(OccurrenceListener.class, l);
   }
-  
+
   private void fireRowChanged(Object[] newValue) {
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class)) {
       l.rowChanged(OccurrenceEvent.createRowChanged(this, newValue));
