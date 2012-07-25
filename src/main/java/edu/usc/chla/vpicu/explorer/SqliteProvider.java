@@ -32,6 +32,7 @@ public class SqliteProvider extends BaseProvider {
         + "   FROM {0}"
         + "   GROUP BY {1}) a"
         + " INNER JOIN {2} l"
+        + " ON l.{3} = a.{1}"
         + " ORDER BY a.count DESC",
         occurrenceTable, occurrenceIdCol, lookupTable, lookupIdCol, labelCol);
     return sql;
