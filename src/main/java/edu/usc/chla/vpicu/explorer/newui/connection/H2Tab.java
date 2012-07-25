@@ -22,6 +22,7 @@ public class H2Tab extends ConnectionTab {
     add(chooser, gbc(1,row++,1,1,1,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
 
     addInputRow(USERNAME);
+    fields.get(USERNAME).setText("sa");
     addLabel(PASSWORD);
     addPasswordField(PASSWORD);
 
