@@ -156,6 +156,8 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
         buttons.get(REMOVETABLE).setEnabled(!tree.isSelectionEmpty());
+        if (!tree.isSelectionEmpty())
+          buttons.get(REMOVETABLE).setText(e.getPath().getPathCount() == 3 ? "Remove File" : REMOVETABLE);
       }
 
     });
