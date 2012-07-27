@@ -1,6 +1,7 @@
 package edu.usc.chla.vpicu.explorer.newui.connection;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -18,22 +20,20 @@ import java.util.Map;
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ToolTipManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -41,6 +41,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
+import org.springframework.dao.DataAccessException;
 
 import edu.usc.chla.vpicu.explorer.BaseProvider;
 import edu.usc.chla.vpicu.explorer.H2Provider;
@@ -57,8 +59,6 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
 
   protected final Map<String, JButton> buttons = new HashMap<String, JButton>();
   protected final Map<String, FileChooserButton> choosers = new HashMap<String, FileChooserButton>();
-  private JTable tables;
-  private DefaultTableModel model;
   private JTree tree;
   private CSVTreeModel tmodel;
   private File h2db;
@@ -78,7 +78,6 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     buttons.put(ADDTABLE, b);
     add(b, gbc(2,row++,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
 
-    //JScrollPane sp = new JScrollPane(createImportTable());
     JScrollPane sp = new JScrollPane(createImportTree());
     add(sp, gbc(0,row,2,2,1,1,GridBagConstraints.LINE_START,GridBagConstraints.BOTH));
 
@@ -100,20 +99,31 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     choosers.get(CSVFILE).addPropertyChangeListener(AbstractButton.TEXT_CHANGED_PROPERTY, importListener);
     fields.get(TABLENAME).getDocument().addDocumentListener(importListener);
 
-    //addImportTableListeners();
     addImportTreeListeners();
   }
 
   @Override
   public void saveFile(File selectedFile) {
     h2db = selectedFile;
-    for (int r = 0; r < model.getRowCount(); r++) {
-      File csv = new File((String)model.getValueAt(r, 0));
-      String table = (String)model.getValueAt(r, 1);
-      H2Provider p = new H2Provider(h2db, "sa", "");
-      StringBuilder sql = new StringBuilder("CREATE TABLE ");
-      sql.append(table).append(" AS SELECT * FROM CSVREAD('").append(csv.getPath()).append("');");
-      p.execute(sql.toString());
+    H2Provider p = new H2Provider(h2db, "sa", "");
+    Map<String, List<String>> tableMap = tmodel.getTableMap();
+    for (String table : tableMap.keySet()) {
+      StringBuilder sql = new StringBuilder("CREATE TABLE ").append(table).append(" AS ");
+      for (String path : tableMap.get(table)) {
+        sql.append("SELECT * FROM CSVREAD('").append(path).append("') UNION ALL ");
+      }
+      sql.setLength(sql.lastIndexOf(" UNION ALL "));
+      try {
+        p.execute(sql.toString());
+      } catch (DataAccessException e) {
+        JTextArea area = new JTextArea(MessageFormat.format("Error creating table \"{0}\" for database \"{1}\":\n\n{2}",
+            table, h2db.getName(), e.getMessage()));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setEditable(false);
+        area.setPreferredSize(new Dimension(300,300));
+        JOptionPane.showMessageDialog(this, new JScrollPane(area), "Error creating H2 database", JOptionPane.ERROR_MESSAGE);
+      }
     }
   }
 
@@ -131,72 +141,14 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     return new H2Provider(h2db, "sa", "");
   }
 
-  private JTable createImportTable() {
-    model = new CSVTableModel();
-    tables = new JTable(model);
-    tables.setFillsViewportHeight(true);
-    tables.setRowSelectionAllowed(true);
-    tables.setColumnSelectionAllowed(false);
-    tables.getColumnModel().getColumn(0).setHeaderValue(CSVFILE);
-    tables.getColumnModel().getColumn(1).setHeaderValue(TABLENAME);
-    tables.getColumnModel().getColumn(0).setCellRenderer(new TooltipCellRenderer());
-
-    // enable "Delete" button when row selected
-    tables.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-      @Override
-      public void valueChanged(ListSelectionEvent arg0) {
-        buttons.get(REMOVETABLE).setEnabled(tables.getSelectedRow() > -1);
-      }
-
-    });
-
-    // enable "Save" button when row exists
-    model.addTableModelListener(new TableModelListener() {
-
-      @Override
-      public void tableChanged(TableModelEvent e) {
-        choosers.get(SAVEDB).setEnabled(tables.getRowCount() > 0);
-      }
-
-    });
-
-    return tables;
-  }
-
-  private void addImportTableListeners() {
-    // create row when "Add Table" button clicked
-    buttons.get(ADDTABLE).addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String file = choosers.get(CSVFILE).getSelectedFile().getAbsolutePath();
-        String name = fields.get(TABLENAME).getText();
-        model.addRow(new Object[] { file, name });
-        // clear selection
-        choosers.get(CSVFILE).clearSelectedFile();
-        fields.get(TABLENAME).setText("");
-      }
-
-    });
-
-    // delete row when "Remove Table" button clicked
-    buttons.get(REMOVETABLE).addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        model.removeRow(tables.getSelectedRow());
-      }
-
-    });
-  }
-
   private JTree createImportTree() {
     tmodel = new CSVTreeModel(new DefaultMutableTreeNode());
     tree = new JTree(tmodel);
     tree.setRootVisible(false);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    tree.setCellRenderer(new TooltipCellRenderer());
+    ToolTipManager.sharedInstance().registerComponent(tree);
 
     // enable "Delete" button when row selected
     tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
@@ -276,17 +228,6 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
       JLabel l = (JLabel)treeCR.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
       l.setToolTipText(value.toString());
       return l;
-    }
-  }
-
-  private static class CSVTableModel extends DefaultTableModel {
-    private static final long serialVersionUID = 1L;
-    public CSVTableModel() {
-      super(0,2);
-    }
-    @Override
-    public boolean isCellEditable(int r, int c) {
-      return false;
     }
   }
 
