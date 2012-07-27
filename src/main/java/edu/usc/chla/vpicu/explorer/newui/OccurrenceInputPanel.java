@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -41,7 +40,7 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
   private final JComboBox lookupId;
   private final JComboBox lookupLabel;
   private final JCheckBox showSql;
-  private final JButton getVocab;
+  private final ProgressButton<List<Object[]>> getVocab;
   private final JTextArea sqlPreview;
   private final JPanel sqlPreviewScroll;
 
@@ -87,7 +86,37 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     showSql.addActionListener(this);
     add(showSql, gbc(0,4+params.size(),1,1,0,0, GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
 
-    getVocab = new JButton("Get Vocabulary");
+    getVocab = new ProgressButton<List<Object[]>>("Get Vocabulary") {
+
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      protected List<Object[]> doInBackground() throws Exception {
+        List<Object[]> occurrences = null;
+        try {
+          occurrences = useLookup.isSelected()
+              ? provider.getOccurrences((String)occTable.getSelectedItem(),
+                  (Column)occId.getSelectedItem(),
+                  (String)lookupTable.getSelectedItem(),
+                  (Column)lookupId.getSelectedItem(),
+                  (Column)lookupLabel.getSelectedItem(),
+                  params)
+              : provider.getOccurrences((String)occTable.getSelectedItem(),
+                  (Column)occId.getSelectedItem(),
+                  (Column)occLabel.getSelectedItem(),
+                  params);
+        } catch (NullPointerException npe) {
+          JOptionPane.showMessageDialog(OccurrenceInputPanel.this, "Missing column selection", "Warning", JOptionPane.WARNING_MESSAGE);
+        }
+        return occurrences;
+      }
+
+      @Override
+      protected void done(List<Object[]> result) {
+        fireOccurrenceQueryPerformed(result);
+      }
+
+    };
     add(getVocab, gbc(3,4+params.size(),1,1,0,0, GridBagConstraints.LINE_END,GridBagConstraints.NONE));
 
     sqlPreview = new JTextArea(4, 10);
@@ -113,7 +142,6 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     lookupTable.addActionListener(this);
     lookupId.addActionListener(this);
     lookupLabel.addActionListener(this);
-    getVocab.addActionListener(this);
   }
 
   private void createParameterComponents(int row) {
@@ -140,9 +168,9 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
         public void focusLost(FocusEvent e) {
           JTextField src = (JTextField)e.getSource();
           params.put(key, src.getText());
-          updateSqlPreview();          
+          updateSqlPreview();
         }
-        
+
       });
       add(new JLabel(label), gbc(0,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
       add(f, gbc(1,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
@@ -197,24 +225,6 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     else if (src == occLabel || src == lookupId || src == lookupLabel) {
       updateSqlPreview();
     }
-    else if (src == getVocab) {
-      try {
-        List<Object[]> occurrences = useLookup.isSelected()
-            ? provider.getOccurrences((String)occTable.getSelectedItem(),
-                (Column)occId.getSelectedItem(),
-                (String)lookupTable.getSelectedItem(),
-                (Column)lookupId.getSelectedItem(),
-                (Column)lookupLabel.getSelectedItem(),
-                params)
-            : provider.getOccurrences((String)occTable.getSelectedItem(),
-                (Column)occId.getSelectedItem(),
-                (Column)occLabel.getSelectedItem(),
-                params);
-        fireOccurrenceQueryPerformed(occurrences);
-      } catch (NullPointerException npe) {
-        JOptionPane.showMessageDialog(this, "Missing column selection", "Warning", JOptionPane.WARNING_MESSAGE);
-      }
-    }
   }
 
   private void updateSqlPreview() {
@@ -243,12 +253,12 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
       l.queryPerformed(OccurrenceEvent.createQueryResult(this, results));
   }
-  
+
   private void fireOccurrenceTableChanged(String newTable) {
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
       l.tableChanged(OccurrenceEvent.createTableChanged(this, newTable));
   }
-  
+
   private void fireOccurrenceIdColumnChanged(Column newId) {
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
       l.idColumnChanged(OccurrenceEvent.createIdColumnChanged(this, newId));
