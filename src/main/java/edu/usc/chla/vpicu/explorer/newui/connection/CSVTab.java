@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractButton;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -57,6 +58,8 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
   public static final String REMOVETABLE = "Remove Table";
   public static final String SAVEDB = "Save Database ...";
 
+  private static final ImageIcon TABLE_ICON = new ImageIcon(CSVTab.class.getClassLoader().getResource("table.png"));
+
   protected final Map<String, JButton> buttons = new HashMap<String, JButton>();
   protected final Map<String, FileChooserButton> choosers = new HashMap<String, FileChooserButton>();
   private JTree tree;
@@ -64,7 +67,7 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
   private File h2db;
 
   public CSVTab() {
-    FileChooserButton c = new FileChooserButton(CSVFILE);
+    FileChooserButton c = new FileChooserButton(CSVFILE, null);
     c.setSuffix(".csv");
     choosers.put(CSVFILE, c);
     add(c, gbc(0,row,1,1,0.5,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
@@ -86,7 +89,7 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     buttons.put(REMOVETABLE, b);
     add(b, gbc(2,row++,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.HORIZONTAL));
 
-    c = new FileChooserButton(SAVEDB);
+    c = new FileChooserButton(SAVEDB, null);
     c.setMode(FileDialog.SAVE);
     c.setSaveFileCallback(this);
     c.setEnabled(false);
@@ -228,6 +231,8 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
         boolean leaf, int row, boolean hasFocus) {
       JLabel l = (JLabel)treeCR.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+      if (!leaf)
+        l.setIcon(TABLE_ICON);
       l.setToolTipText(value.toString());
       return l;
     }

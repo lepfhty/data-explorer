@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.filechooser.FileSystemView;
 
@@ -16,15 +17,17 @@ public class FileChooserButton extends JButton implements ActionListener {
   private static final long serialVersionUID = 1L;
 
   private final String prompt;
+  private final Icon icon;
   private final FileDialog fdialog;
   private String ext;
   private File selectedFile;
   private final Font defaultFont;
   private SaveFileCallback callback;
 
-  public FileChooserButton(String text) {
+  public FileChooserButton(String text, Icon icon) {
     super(text);
     prompt = text;
+    this.icon = icon;
     defaultFont = getFont();
     fdialog = new FileDialog((Frame)null, prompt);
     addActionListener(this);
@@ -77,7 +80,7 @@ public class FileChooserButton extends JButton implements ActionListener {
         case FileDialog.LOAD:
           setText(selectedFile.getName());
           setToolTipText(selectedFile.getPath());
-          setIcon(FileSystemView.getFileSystemView().getSystemIcon(selectedFile));
+          setIcon(icon == null ? FileSystemView.getFileSystemView().getSystemIcon(selectedFile) : icon);
           break;
         case FileDialog.SAVE:
           callback.saveFile(selectedFile);
