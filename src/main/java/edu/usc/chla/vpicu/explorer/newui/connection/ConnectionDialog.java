@@ -59,10 +59,6 @@ public class ConnectionDialog extends JDialog implements ActionListener {
     return provider;
   }
 
-  public static void main(String[] args) {
-    new ConnectionDialog().setVisible(true);
-  }
-
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == connect) {
