@@ -6,8 +6,6 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +24,7 @@ import javax.swing.event.EventListenerList;
 import edu.usc.chla.vpicu.explorer.BaseProvider;
 import edu.usc.chla.vpicu.explorer.Column;
 
-public class OccurrenceInputPanel extends JPanel implements ActionListener {
+public class OccurrenceInputPanel extends JPanel implements ActionListener, SqlPreviewer {
 
   private static final long serialVersionUID = 1L;
 
@@ -146,32 +144,10 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
 
   private void createParameterComponents(int row) {
     for (String label : params.keySet()) {
-      final String key = label;
       JTextField f = new JTextField(params.get(label).toString(), 5);
-      f.addActionListener(new ActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          JTextField src = (JTextField)e.getSource();
-          params.put(key, src.getText());
-          updateSqlPreview();
-        }
-
-      });
-      f.addFocusListener(new FocusListener() {
-
-        @Override
-        public void focusGained(FocusEvent e) {
-        }
-
-        @Override
-        public void focusLost(FocusEvent e) {
-          JTextField src = (JTextField)e.getSource();
-          params.put(key, src.getText());
-          updateSqlPreview();
-        }
-
-      });
+      ParamListener p = new ParamListener(label, params, this);
+      f.addActionListener(p);
+      f.addFocusListener(p);
       add(new JLabel(label), gbc(0,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
       add(f, gbc(1,row,1,1,0,0,GridBagConstraints.CENTER,GridBagConstraints.HORIZONTAL));
       row++;
@@ -227,7 +203,8 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener {
     }
   }
 
-  private void updateSqlPreview() {
+  @Override
+  public void updateSqlPreview() {
     Column occIdCol = (Column)occId.getSelectedItem();
     Column occLabelCol = (Column)occLabel.getSelectedItem();
     Column lookupIdCol = (Column)lookupId.getSelectedItem();
