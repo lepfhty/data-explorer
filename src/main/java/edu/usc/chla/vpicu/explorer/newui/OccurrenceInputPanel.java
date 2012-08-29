@@ -232,11 +232,13 @@ public class OccurrenceInputPanel extends JPanel implements ActionListener, SqlP
   }
 
   private void fireOccurrenceTableChanged(String newTable) {
+    getVocab.setText("Get Vocabulary");
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
       l.tableChanged(OccurrenceEvent.createTableChanged(this, newTable));
   }
 
   private void fireOccurrenceIdColumnChanged(Column newId) {
+    getVocab.setText("Get Vocabulary");
     for (OccurrenceListener l : listeners.getListeners(OccurrenceListener.class))
       l.idColumnChanged(OccurrenceEvent.createIdColumnChanged(this, newId));
   }

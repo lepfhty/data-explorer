@@ -30,7 +30,7 @@ public abstract class ProgressButton<T> extends JButton {
 
   public void setDone() {
     setIcon(null);
-    setText(text);
+    setText("Get Vocabulory"); //or "Done!"
     setFont(font);
   }
 
