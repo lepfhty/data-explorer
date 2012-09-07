@@ -131,6 +131,11 @@ public class CSVTab extends ConnectionTab implements SaveFileCallback {
   }
 
   @Override
+  public boolean requiredFieldsSet() {
+    return !tmodel.getTableMap().isEmpty();
+  }
+
+  @Override
   public BaseProvider getProvider() {
     if (h2db == null) {
       try {

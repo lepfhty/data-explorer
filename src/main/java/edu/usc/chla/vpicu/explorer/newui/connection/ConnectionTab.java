@@ -31,6 +31,8 @@ abstract class ConnectionTab extends JPanel {
 
   public abstract BaseProvider getProvider();
 
+  public abstract boolean requiredFieldsSet();
+
   protected JLabel addLabel(String name) {
     JLabel l = new JLabel(name);
     add(l, gbc(0,row,1,1,0,0,GridBagConstraints.LINE_START,GridBagConstraints.NONE));

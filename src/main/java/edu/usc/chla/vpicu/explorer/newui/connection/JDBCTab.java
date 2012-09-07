@@ -12,14 +12,14 @@ import edu.usc.chla.vpicu.explorer.BaseProvider;
 abstract class JDBCTab extends ConnectionTab implements FocusListener, ActionListener {
 
   private static final long serialVersionUID = 1L;
-  
+
   public static final String JDBCURL = "JDBC URL";
   public static final String DRIVERCLASS = "Driver Class";
   public static final String HOST = "Host";
   public static final String PORT = "Port";
   public static final String USERNAME = "Username";
   public static final String PASSWORD = "Password";
-  
+
   public JDBCTab() {
     addConnectionFields();
     addCustomFields();
@@ -28,7 +28,17 @@ abstract class JDBCTab extends ConnectionTab implements FocusListener, ActionLis
     fields.get(PORT).setText(String.valueOf(getDefaultPort()));
     fillJdbcFields();
   }
-  
+
+  @Override
+  public boolean requiredFieldsSet() {
+    String u = fields.get(USERNAME).getText();
+    String pw = fields.get(PASSWORD).getText();
+    String h = fields.get(HOST).getText();
+    String p = fields.get(PORT).getText();
+    return u != null && !u.isEmpty() && pw != null && !pw.isEmpty() &&
+        h != null && !h.isEmpty() && p != null && !p.isEmpty();
+  }
+
   protected void addJdbcFields() {
     addSeparator();
     addInputRow(JDBCURL);
@@ -36,7 +46,7 @@ abstract class JDBCTab extends ConnectionTab implements FocusListener, ActionLis
     fields.get(JDBCURL).setEnabled(false);
     fields.get(DRIVERCLASS).setEnabled(false);
   }
-  
+
   protected void addConnectionFields() {
     addInputRow(USERNAME);
     addLabel(PASSWORD);
@@ -45,11 +55,11 @@ abstract class JDBCTab extends ConnectionTab implements FocusListener, ActionLis
     addInputRow(PORT);
     addJdbcFieldListeners(HOST, PORT);
   }
-  
+
   protected abstract void addCustomFields();
-  
+
   protected abstract int getDefaultPort();
-  
+
   @Override
   public void focusGained(FocusEvent e) {
   }
@@ -58,19 +68,19 @@ abstract class JDBCTab extends ConnectionTab implements FocusListener, ActionLis
   public void focusLost(FocusEvent e) {
     fillJdbcFields();
   }
-  
+
   @Override
   public void actionPerformed(ActionEvent e) {
     fillJdbcFields();
   }
-  
+
   protected void fillJdbcFields() {
     BaseProvider p = getProvider();
     DataSource ds = (DataSource)p.getDataSource();
     fields.get(JDBCURL).setText(ds.getUrl());
     fields.get(DRIVERCLASS).setText(ds.getDriverClassName());
   }
-  
+
   protected void addJdbcFieldListeners(String... keys) {
     for (String k : keys) {
       fields.get(k).addFocusListener(this);

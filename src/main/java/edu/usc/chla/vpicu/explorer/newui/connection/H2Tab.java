@@ -34,6 +34,11 @@ public class H2Tab extends ConnectionTab {
   }
 
   @Override
+  public boolean requiredFieldsSet() {
+    return chooser.getSelectedFile() != null;
+  }
+
+  @Override
   public BaseProvider getProvider() {
     return new H2Provider(chooser.getSelectedFile(),
         fields.get(USERNAME).getText(),

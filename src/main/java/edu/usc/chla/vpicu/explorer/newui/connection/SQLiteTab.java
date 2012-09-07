@@ -27,6 +27,11 @@ public class SQLiteTab extends ConnectionTab {
   }
 
   @Override
+  public boolean requiredFieldsSet() {
+    return chooser.getSelectedFile() != null;
+  }
+
+  @Override
   public BaseProvider getProvider() {
     return new SqliteProvider(chooser.getSelectedFile());
   }

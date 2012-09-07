@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -63,10 +64,15 @@ public class ConnectionDialog extends JDialog implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == connect) {
       ConnectionTab t = (ConnectionTab)tabs.getSelectedComponent();
-      provider = t.getProvider();
+      if (!t.requiredFieldsSet()) {
+        JOptionPane.showMessageDialog(this, "Required fields are not set", "Required fields are not set", JOptionPane.WARNING_MESSAGE);
+        provider = null;
+      } else {
+        provider = t.getProvider();
+      }
     }
     else
       provider = null;
-    setVisible(false);
+    setVisible(provider == null);
   }
 }
